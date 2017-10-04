@@ -36,8 +36,7 @@
                 </v-flex>
                 <v-flex xs10 >
                   <v-text-field name="email" v-model="email" label="Email"
-                  :error-messages="emailErrors" @input="$v.email.$touch()"
-                  @blur="$v.email.$touch()" required></v-text-field>
+                  disabled></v-text-field>
                 </v-flex>
                 <v-flex xs10>
                   <v-text-field name="cel" v-model="cel" prefix="+56 9" class="input-group--focused" label="Celular"
@@ -64,7 +63,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn class="blue--text darken-1" @click="clear" flat @click.native="dialog = false">Close</v-btn>
-          <v-btn info class="green darken-4" @click="submit">Ingresar</v-btn>
+          <v-btn info class="green darken-4" @click="submit">Modificar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

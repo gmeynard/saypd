@@ -180,34 +180,23 @@ apiRoutes.post('/setUser',
 (req, res) => {
     console.log("Ingresando a servicio setUser");
     console.log(req.body);
-    var isError = false;
-    var p_descripcion = "Registro guardado correctamente";
+
     db.collection('usuarios').find({email:req.body.email}).count(
       function(err, results) {
-        if (err){
-          isError = true;
-          p_descripcion = "Error al obtener el registro";
-        }
-        if (results>0){
-          console.log("mas de un usuario");
-          isError = true;
-          p_descripcion = "Email ya registrado";
-        }
-        if(!isError){
-          db.collection('usuarios').save(req.body, (err, result) => {
-             if (err) {
-               isError = true;
-               p_descripcion = "Error al guardar el registro";
-             }
-          })
-        }
-    })
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Usuario ya existe."});
 
+         db.collection('usuarios').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+         })
+
+    })
     const user = getUser(req.body.email);
-    var p_estado = isError ? "NOK" : "OK";
-    console.log(p_estado);
-    return res.status(201).json({estado: p_estado, descripcion: p_descripcion, usuario : user});
-  }
+    return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
 );
 
 //insert

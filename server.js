@@ -192,11 +192,12 @@ apiRoutes.post('/setUser',
          function (err, result) {
            if (err)
              return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           const user = getUser(req.body.email);
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
          })
 
     })
-    const user = getUser(req.body.email);
-    return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
+  }
 );
 
 //insert

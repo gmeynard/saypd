@@ -1,3 +1,4 @@
+
 <template>
   <v-navigation-drawer v-if="isLogged" absolute persistent light :mini-variant.sync="mini" v-model="drawer" overflow>
     <v-toolbar flat class="transparent">
@@ -20,6 +21,14 @@
     <v-list class="pt-0" dense>
       <v-divider></v-divider>
       <v-list-item v-for="item in items" :key="item.title">
+        <v-layout row v-if="item.heading" align-center:key="i">
+          <v-flex xs6>
+            <v-subheader v-if="item.heading">
+              {{ item.heading }}
+            </v-subheader>
+          </v-flex>
+        </v-layout>
+        <v-divider dark v-if="item.divider"></v-divider>
           <v-list-tile :to="item.to" :router="item.router">
               <v-list-tile-action>
                   <v-icon indigo v-html="item.icon"></v-icon>
@@ -47,7 +56,7 @@ export default {
       { title: 'Proyectos', icon: 'archive', to: '/proyectos', router: true },
       { title: 'Clientes', icon: 'account_circle' },
       { divider: true },
-
+      { heading: 'Configuración'},
       { title: 'Usuarios', icon: 'account_circle', to: '/users' },
       { title: 'Configuración', icon: 'settings' }
     ],

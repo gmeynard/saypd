@@ -20,16 +20,40 @@
       </v-toolbar>
       <v-list>
         <v-divider></v-divider>
-        <v-list-item v-for="item in items" :key="item.title">
-            <v-list-tile :to="item.to" :router="item.router">
-                <v-list-tile-action>
-                    <v-icon indigo v-html="item.icon"></v-icon>
-                </v-list-tile-action>
-                <v-list-tile-content>
-                    <v-list-tile-title v-html="item.title"></v-list-tile-title>
-                </v-list-tile-content>
-            </v-list-tile>
-        </v-list-item>
+        <template v-for="(item, i) in items">
+          <v-layout
+            row
+            v-if="item.heading"
+            align-center
+            :key="i"
+          >
+            <v-flex xs6>
+              <v-subheader v-if="item.heading">
+                {{ item.heading }}
+              </v-subheader>
+            </v-flex>
+          </v-layout>
+          <v-divider
+            dark
+            v-else-if="item.divider"
+            class="my-4"
+            :key="i"
+          ></v-divider>
+          <v-list-tile
+            :key="i"
+            v-else
+            :to="item.to" :router="item.router"
+          >
+            <v-list-tile-action>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title >
+                {{ item.title }}
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+        </template>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar fixed class="indigo darken-4" dark>
@@ -69,7 +93,7 @@
         { title: 'Proyectos', icon: 'archive', to: '/proyectos', router: true },
         { title: 'Clientes', icon: 'account_circle' },
         { divider: true },
-
+        { heading: 'Configuración'},
         { title: 'Usuarios', icon: 'account_circle', to: '/users' },
         { title: 'Configuración', icon: 'settings' }
       ],

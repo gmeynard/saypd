@@ -52,7 +52,7 @@ passport.use(new LocalStrategy(
     const user = getUser(email);
     user.then(
       function(resp){
-        if (!resp || resp.password !== password) {
+        if (!resp || resp.password !== password || resp.estado == 'I') {
           return done(null, false, { message: 'Username and password combination is wrong' });
         }
         delete user.password;
@@ -200,7 +200,7 @@ apiRoutes.post('/setUser',
   }
 );
 
-//insert
+//update
 apiRoutes.post('/updateUser',
 (req, res) => {
     console.log("Ingresando a servicio updateUser");
@@ -217,18 +217,19 @@ apiRoutes.post('/updateUser',
              function (err, result) {
                if (err)
                  return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+               const user = getUser(req.body.email);
+               return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
              })
            }else{
              db.collection('usuarios').updateMany({email:req.body.email},{$set : {'name': req.body.name, 'lastname':req.body.lastname, 'cel':req.body.cel}},
                function (err, result) {
                  if (err)
                    return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+                 const user = getUser(req.body.email);
+                 return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
              })
            }
-
     })
-    const user = getUser(req.body.email);
-    return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", usuario : user});
   }
 );
 
@@ -258,8 +259,85 @@ apiRoutes.get('/users',
   }
 );
 
+//CRUD TypeAlert
+//insert
+apiRoutes.post('/setTypeAlert',
+(req, res) => {
+    console.log("Ingresando a servicio setAlert");
+    console.log(req.body);
+
+    db.collection('saypd_type_alert').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Tipo ya existe."});
+
+         db.collection('saypd_type_alert').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+
+    })
+  }
+);
+
+//update
+apiRoutes.post('/updateTypeAlert',
+(req, res) => {
+    console.log("Ingresando a servicio updateTypeAlert");
+    console.log(req.body);
+    db.collection('saypd_type_alert').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>1)
+           return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
+
+       db.collection('saypd_type_alert').updateMany({name:req.body.name},{$set : {'name': req.body.name}},
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+       })
+
+    })
+  }
+);
+
+//updateState
+apiRoutes.post('/stateTypeAlert',
+  (req, res) => {
+    console.log("Ingresando a servicio userUpdateState");
+    console.log(req.body.email);
+    var stateNew = req.body.state == 'A' ? 'I' : 'A';
+    db.collection('saypd_type_alert').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
 
 
+//getList
+apiRoutes.get('/listTypeAlert',
+  (req, res) => {
+    db.collection('saypd_type_alert').find().toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ types : results });
+    })
+  }
+);
+
+
+
+
+
+//Other Services
 
 // Obtener alertas
 apiRoutes.get('/alertas',

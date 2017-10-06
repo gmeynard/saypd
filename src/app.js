@@ -11,9 +11,10 @@ import Login from './security/saypd_login.vue';
 
 //alerts
 import AlertsList from './pages/private/alerts/saypd_alerts_list.vue';
-
+import TypeAlertList from './pages/private/typeAlert/saypd_typealert_list.vue';
 //users
 import UserList from './pages/private/users/saypd_user_list.vue';
+
 
 import VueChart from 'vue-chart-js';
 import AlertaListProyectos from './alerta_list_proyectos.vue';
@@ -49,8 +50,14 @@ const routes = [
     meta:{conditionalRoute:true}
   },
   {
+    path: '/listTypeAlert',
+    name: 'TypeAlertList',
+    component: TypeAlertList,
+    meta:{conditionalRoute:true}
+  },
+  {
     path: '*',
-    redirect: '/b'
+    redirect: '/'
   },
 ];
 

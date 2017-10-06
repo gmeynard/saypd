@@ -9,3 +9,11 @@
 .none-underline {
       text-decoration: none !important;
 }
+/* This is for documentation purposes and will not be needed in your application */
+#create .speed-dial {
+  position: absolute;
+}
+
+#create .btn--floating {
+  position: relative;
+}

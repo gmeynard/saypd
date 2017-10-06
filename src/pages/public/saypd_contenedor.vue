@@ -95,7 +95,7 @@
         { divider: true },
         { heading: 'Configuración'},
         { title: 'Usuarios', icon: 'account_circle', to: '/users' },
-        { title: 'Configuración', icon: 'settings' }
+        { title: 'Tipo Alertas', icon: 'settings', to: '/listTypeAlert'  }
       ],
       mini: false,
       right: null

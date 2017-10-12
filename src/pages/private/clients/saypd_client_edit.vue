@@ -1,22 +1,21 @@
 <template>
-  <v-layout row justify-center>
-    <v-dialog v-model="dialog" persistent width="50%">
-      <v-btn v-tooltip:right="{ html: 'Agregar Usuario' }"
-        absolute dark fab bottom left class="green"  slot="activator">
-        <v-icon>add</v-icon>
+    <v-dialog v-model="dialog" width="50%">
+      <v-btn @click="update" v-tooltip:right="{ html: 'Editar Cliente' }"
+        fab dark small class="blue" slot="activator">
+        <v-icon>edit</v-icon>
       </v-btn>
       <v-card>
         <v-alert
           success
           :value="alert"
           transition="scale-transition"
-        > Acción Ingresada correctamente
+        > Cliente Modificado correctamente
         </v-alert>
         <v-alert
           error
           :value="alertError"
           transition="scale-transition"
-        > {{error}}
+        > Error en el ingreso de la accion
         </v-alert>
         <v-card-title>
           <span class="headline">{{title}}</span>
@@ -37,8 +36,7 @@
                 </v-flex>
                 <v-flex xs10 >
                   <v-text-field name="email" v-model="email" label="Email"
-                  :error-messages="emailErrors" @input="$v.email.$touch()"
-                  @blur="$v.email.$touch()" required></v-text-field>
+                  disabled></v-text-field>
                 </v-flex>
                 <v-flex xs10>
                   <v-text-field name="cel" v-model="cel" prefix="+56 9" class="input-group--focused" label="Celular"
@@ -49,13 +47,13 @@
                   <v-text-field name="password" v-model="password" label="Contraseña"
                   :error-messages="passwordErrors" @input="$v.password.$touch()"
                   @blur="$v.password.$touch()" type="password"
-                  required></v-text-field>
+                  ></v-text-field>
                 </v-flex>
                 <v-flex xs5>
                   <v-text-field name="repassword" v-model="repassword" label="Repetir Contraseña"
                   :error-messages="repasswordErrors" @input="$v.repassword.$touch()"
                   @blur="$v.repassword.$touch()" type="password"
-                  required></v-text-field>
+                  ></v-text-field>
                 </v-flex>
               </v-layout>
             </v-container>
@@ -65,11 +63,10 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn class="blue--text darken-1" @click="clear" flat @click.native="dialog = false">Close</v-btn>
-          <v-btn info :disabled="isDisabled" class="green darken-4" @click="submit">Ingresar</v-btn>
+          <v-btn info class="green darken-4" @click="submit">Modificar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-layout>
 </template>
 
 <script>
@@ -77,17 +74,17 @@
   import { required, minLength, maxLength, numeric, email, sameAs } from 'vuelidate/lib/validators'
   import axios from 'axios';
   export default {
-    name: 'UserAdd',
+    name: 'UserEdit',
     mixins: [validationMixin],
     validations: {
      name: { required },
      lastname: { required },
      email: { required, email },
      cel: { required, numeric, maxLength: maxLength(8) , minLength: minLength(6)  },
-     password: { required, minLength: minLength(6) },
-     repassword: { required, sameAsPassword: sameAs('password') }
+     password: {  minLength: minLength(6) },
+     repassword: { sameAsPassword: sameAs('password') }
     },
-    props: ['onAdd', 'title'],
+    props: ['onAdd', 'title','usuario'],
     data () {
       return {
         name: '',
@@ -96,36 +93,29 @@
         cel: '',
         password: '',
         repassword: '',
-        isDisabled: false,
         dialog: false,
         alert:false,
-        alertError:false,
-        error : 'Error de Sistema.'
+        alertError:false
       }
     },
     methods: {
       submit () {
         this.$v.$touch();
-        console.log(this.$v.$invalid);
         if(this.$v.$invalid){
-          console.log("Invalid Form");
           return;
         }
-        axios.post('/api/setUser',{
+        axios.post('/api/updateUser',{
            name:this.name,
            lastname:this.lastname,
            email:this.email,
            cel:this.cel,
-           password: this.password,
-           estado:'A',
-           perfil:'SISTEMA'
+           password: this.password
         }).then(({ data }) => {
             if(data.estado == 'OK'){
               this.onAdd(data.usuario);
               this.alert = true;
-              this.isDisabled = true;
+
             }else{
-              this.error = data.descripcion;
               this.alertError = true;
             }
           }).catch(res => {
@@ -140,9 +130,16 @@
         this.cel = '';
         this.password = '';
         this.repassword = '';
-        this.alert = false;
-        this.alertError = false;
-        this.isDisabled = false;
+         this.alert = false;
+         this.alertError = false;
+      },
+      update () {
+        this.name = this.usuario.name;
+        this.lastname = this.usuario.lastname;
+        this.email = this.usuario.email;
+        this.cel = this.usuario.cel;
+        this.password = '';
+        this.repassword = '';
       }
    },
    computed: {
@@ -160,17 +157,12 @@
       },
       passwordErrors () {
         const errors = []
-        if (!this.$v.password.$dirty) return errors
         !this.$v.password.minLength && errors.push('Debe contener al menos 6 caracteres');
-        !this.$v.password.required && errors.push('Contraseña es requerida.')
         return errors
       },
       repasswordErrors () {
         const errors = []
-        if (!this.$v.repassword.$dirty) return errors
           !this.$v.repassword.sameAsPassword && errors.push('Contraseña debe ser identica.')
-        !this.$v.repassword.required && errors.push('Validacion de Contraseña es requerida.')
-
         return errors
       },
       emailErrors () {

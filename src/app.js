@@ -12,10 +12,14 @@ import Login from './security/saypd_login.vue';
 //alerts
 import AlertsList from './pages/private/alerts/saypd_alerts_list.vue';
 import TypeAlertList from './pages/private/typeAlert/saypd_typealert_list.vue';
+import TypeNotificationList from './pages/private/typeNotification/saypd_typenotification_list.vue';
 //users
 import UserList from './pages/private/users/saypd_user_list.vue';
+import ClientList from './pages/private/clients/saypd_client_list.vue';
 
-
+//Supcription
+import SupcriptionList from './pages/private/supcription/saypd_supcription_list.vue';
+ 
 import VueChart from 'vue-chart-js';
 import AlertaListProyectos from './alerta_list_proyectos.vue';
 
@@ -50,9 +54,27 @@ const routes = [
     meta:{conditionalRoute:true}
   },
   {
+    path: '/clients',
+    name: 'ClientList',
+    component: ClientList,
+    meta:{conditionalRoute:true}
+  },
+  {
     path: '/listTypeAlert',
     name: 'TypeAlertList',
     component: TypeAlertList,
+    meta:{conditionalRoute:true}
+  },
+  {
+    path: '/listTypeNotification',
+    name: 'TypeNotificationList',
+    component: TypeNotificationList,
+    meta:{conditionalRoute:true}
+  },
+  {
+    path: '/listSupcriptions',
+    name: 'SupcriptionList',
+    component: SupcriptionList,
     meta:{conditionalRoute:true}
   },
   {

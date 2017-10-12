@@ -1,7 +1,7 @@
 <template>
   <v-layout row justify-center>
     <v-dialog v-model="dialog" persistent width="50%">
-      <v-btn v-tooltip:right="{ html: 'Agregar Usuario' }"
+      <v-btn v-tooltip:right="{ html: 'Agregar Cliente' }"
         absolute dark fab bottom left class="green"  slot="activator">
         <v-icon>add</v-icon>
       </v-btn>
@@ -118,7 +118,7 @@
            cel:this.cel,
            password: this.password,
            estado:'A',
-           perfil:'SISTEMA'
+           perfil:'CLIENTE'
         }).then(({ data }) => {
             if(data.estado == 'OK'){
               this.onAdd(data.usuario);

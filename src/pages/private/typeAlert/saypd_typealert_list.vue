@@ -1,5 +1,3 @@
-
-</style>
 <template>
   <v-container fluid>
   <v-card>
@@ -14,39 +12,36 @@
         v-model="search"
       ></v-text-field>
     </v-card-title>
-    <UserAdd :onAdd='onUserAdd' title='Usuarios'/>
+    <TypeAlertAdd :onAdd='onAdd' title='Tipo Alerta'/>
     <v-data-table
         :headers="headers"
-        :items="users"
+        :items="list"
         :search="search"
-        rowsPerPageText="Usuarios por pagina"
+        rowsPerPageText="Tipos por pagina"
     >
       <template slot="items" scope="props">
         <td class="text-xs-center">{{ props.item.name }}</td>
-        <td class="text-xs-center">{{ props.item.lastname }}</td>
-        <td class="text-xs-center">{{ props.item.email }}</td>
-        <td class="text-xs-center">+56 9 {{ props.item.cel }}</td>
-        <td class="text-xs-center" v-if="props.item.estado == 'A'" >
+        <td class="text-xs-center" v-if="props.item.state == 'A'" >
           <v-icon success>check_circle</v-icon>
         </td>
-        <td class="text-xs-center" v-if="props.item.estado == 'I'" >
+        <td class="text-xs-center" v-if="props.item.state == 'I'" >
           <v-icon error>error</v-icon>
         </td>
         <td class="text-xs-center">
-          <UserEdit :onAdd='onUserAdd' :usuario="props.item" title='Editar Usuario'/>
-          <v-btn fab dark small class="red" v-if="props.item.estado == 'A'"
-            @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Desactivar Usuario' }">
+          <TypeAlertEdit :onAdd='onAdd' :object="props.item" title='Editar Tipo'/>
+          <v-btn fab dark small class="red" v-if="props.item.state == 'A'"
+            @click="changeState(props.item.name,props.item.state)"
+            v-tooltip:left="{ html: 'Desactivar Tipo' }">
               <v-icon>remove</v-icon>
           </v-btn>
-          <v-btn fab dark small class="green" v-if="props.item.estado == 'I'"
-            @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Activar Usuario' }">
+          <v-btn fab dark small class="green" v-if="props.item.state == 'I'"
+            @click="changeState(props.item.name,props.item.state)"
+            v-tooltip:left="{ html: 'Activar Tipo' }">
               <v-icon>check</v-icon>
           </v-btn>
           <v-btn fab dark small class="red"
-            @click="deleteType(props.item.email)"
-            v-tooltip:left="{ html: 'Eliminar Usuario' }">
+            @click="deleteType(props.item.name)"
+            v-tooltip:left="{ html: 'Eliminar Tipo' }">
               <v-icon>delete</v-icon>
           </v-btn>
         </td>
@@ -72,21 +67,18 @@
 </style>
 <script>
   import axios from 'axios';
-  import UserAdd from './saypd_user_add.vue';
-  import UserEdit from './saypd_user_edit.vue';
+  import TypeAlertAdd from './saypd_typealert_add.vue';
+  import TypeAlertEdit from './saypd_typealert_edit.vue';
 
   export default {
     data: () => ({
       headers: [
         { text: 'Nombre', value: 'nombre', align: 'center' },
-        { text: 'Apellidos', value: 'lastname', align: 'center' },
-        { text: 'Email', value: 'email', align: 'center' },
-        { text: 'Celular', value: 'cel', align: 'center' },
         { text: 'Estado', value: 'estado', align: 'center' },
         { text: 'Accion', align: 'center' }
       ],
-      title: "Usuarios",
-      users: [],
+      title: "Tipos de Alerta",
+      list: [],
       search: '',
       pagination: {},
       direction: "left",
@@ -101,20 +93,20 @@
       transition: 'slide-x-reverse-transition'
     }),
     components : {
-      UserAdd,
-      UserEdit
+      TypeAlertAdd,
+      TypeAlertEdit
     },
     beforeMount() {
       this.update();
     },
     methods: {
-      onUserAdd(user) {
+      onAdd(user) {
         this.update();
-    },
-      changeState(email,estado) {
-        axios.post('/api/userUpdateState',{
-           email:email,
-           state: estado
+      },
+      changeState(id,state) {
+        axios.post('/api/stateTypeAlert',{
+           name:id,
+           state: state
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -122,8 +114,8 @@
         });
       },
       deleteType(id) {
-        axios.post('/api/removeUser',{
-            email:id
+        axios.post('/api/removeTypeAlert',{
+           name:id
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -131,11 +123,10 @@
         });
       },
       update() {
-        axios.get('/api/users')
-          .then(( { data : userData }) => {
-            console.log(userData.users);
-              this.users = userData.users;
-              console.log(this.users);
+        axios.get('/api/listTypeAlert')
+          .then(( { data : list }) => {
+            console.log(list.types);
+              this.list = list.types;
           });
       }
     }

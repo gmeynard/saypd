@@ -8,7 +8,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const uuid = require('node-uuid');
 const appData = require('./data.json');
-
+const nodemailer = require("nodemailer");
 const MongoClient = require('mongodb').MongoClient
 
 
@@ -119,6 +119,34 @@ function isAuthenticated(req, res, next) {
   return next();
 }
 
+function sendMail (){
+    var smtpTransport = nodemailer.createTransport({
+    service: 'Outlook',
+  	auth: {
+  	  user: 'gmeynard@dipres.gob.cl',
+  	  pass: ''
+  	}
+  });
+
+
+    var mailOptions = {
+        from: 'SAYPD<gonzalo.meynardp@gmail.com>', // sender address
+        to: ['gonzalo.meynardp@gmail.com'], // list of receivers
+        subject: 'Se ha activado una alerta', // Subject line
+        html: 'Este es un email enviado en node js' // html body
+    }
+
+
+    smtpTransport.sendMail(mailOptions, function(error, response){
+      if(error){
+  	  console.log(error)
+  	}else{
+  	  console.log("email enviado con exito")
+  	}
+
+  });
+}
+
 // Create home route
 server.get('/', (req, res) => {
   return res.render('inicio');
@@ -173,6 +201,11 @@ apiRoutes.get('/usuario', (req, res) => {
     req.user.password = null;
   res.status(201).json({ user: req.user });
 });
+
+
+
+
+
 
 //CRUD Usuarios
 //insert
@@ -248,11 +281,35 @@ apiRoutes.post('/userUpdateState',
   }
 );
 
+//updateState
+apiRoutes.post('/removeUser',
+  (req, res) => {
+    console.log("Ingresando a servicio removeUser");
+    var stateNew = 'E'
+    db.collection('usuarios').updateMany({email:req.body.email},{$set : {'estado': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
 
 //get
 apiRoutes.get('/users',
   (req, res) => {
-    db.collection('usuarios').find().toArray(function(err, results) {
+    db.collection('usuarios').find({perfil: 'SISTEMA', estado: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ users : results });
+    })
+  }
+);
+
+//get
+apiRoutes.get('/clients',
+  (req, res) => {
+    db.collection('usuarios').find({perfil: 'CLIENTE', estado: { $in: [ "A", "I" ]}}).toArray(function(err, results) {
       if (err) return console.log(err)
       res.status(201).json({ users : results });
     })
@@ -310,8 +367,7 @@ apiRoutes.post('/updateTypeAlert',
 //updateState
 apiRoutes.post('/stateTypeAlert',
   (req, res) => {
-    console.log("Ingresando a servicio userUpdateState");
-    console.log(req.body.email);
+    console.log("Ingresando a servicio stateTypeAlert");
     var stateNew = req.body.state == 'A' ? 'I' : 'A';
     db.collection('saypd_type_alert').updateMany({name:req.body.name},{$set : {'state': stateNew}},
       function (err, result) {
@@ -322,19 +378,183 @@ apiRoutes.post('/stateTypeAlert',
   }
 );
 
+//updateState
+apiRoutes.post('/removeTypeAlert',
+  (req, res) => {
+    console.log("Ingresando a servicio removeTypeAlert");
+    var stateNew = 'E'
+    db.collection('saypd_type_alert').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
+
 
 //getList
 apiRoutes.get('/listTypeAlert',
   (req, res) => {
-    db.collection('saypd_type_alert').find().toArray(function(err, results) {
+    db.collection('saypd_type_alert').find({state: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
       if (err) return console.log(err)
       res.status(201).json({ types : results });
     })
   }
 );
 
+//CRUD TypeNotification
+//insert
+apiRoutes.post('/setTypeNotification',
+(req, res) => {
+    console.log("Ingresando a servicio setTypeNotification");
+    console.log(req.body);
+
+    db.collection('saypd_type_notification').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Tipo ya existe."});
+
+         db.collection('saypd_type_notification').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+
+    })
+  }
+);
+
+//update
+apiRoutes.post('/updateTypeNotification',
+(req, res) => {
+    console.log("Ingresando a servicio updateTypeNotification");
+    console.log(req.body);
+    db.collection('saypd_type_notification').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>1)
+           return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
+
+       db.collection('saypd_type_notification').updateMany({name:req.body.name},{$set : {'name': req.body.name}},
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+       })
+
+    })
+  }
+);
+
+//updateState
+apiRoutes.post('/stateTypeNotification',
+  (req, res) => {
+    console.log("Ingresando a servicio stateTypeNotification");
+    console.log(req.body.email);
+    var stateNew = req.body.state == 'A' ? 'I' : 'A';
+    db.collection('saypd_type_notification').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
+
+//updateState
+apiRoutes.post('/removeTypeNotification',
+  (req, res) => {
+    console.log("Ingresando a servicio removeTypeNotification");
+    var stateNew = 'E'
+    db.collection('saypd_type_notification').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
+
+//getList
+apiRoutes.get('/listTypeNotification',
+  (req, res) => {
+    db.collection('saypd_type_notification').find({state: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ types : results });
+    })
+  }
+);
+
+//CRUD suscription
+//insert
+apiRoutes.post('/setSupcription',
+(req, res) => {
+    console.log("Ingresando a servicio setSupcription");
+    console.log(req.body);
+    db.collection('saypd_supcription').find({ email:req.body.email, notification:req.body.notification, alert:req.body.alert}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        console.log(results);
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Subcripción ya existe."});
+
+         db.collection('saypd_supcription').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+    })
+  }
+);
+
+//updateState
+apiRoutes.post('/stateSupcription',
+  (req, res) => {
+    console.log("Ingresando a servicio stateSupcription");
+    var stateNew = req.body.estado == 'A' ? 'I' : 'A';
+    db.collection('saypd_supcription').updateMany({email:req.body.email, notification:req.body.notification, alert:req.body.alert},{$set : {'estado': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
+
+//updateState
+apiRoutes.post('/removeSupcription',
+  (req, res) => {
+    console.log("Ingresando a servicio removeSupcription");
+    var stateNew = 'E'
+    db.collection('saypd_supcription').remove({email:req.body.email, notification:req.body.notification, alert:req.body.alert},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
 
 
+//getList
+apiRoutes.get('/listSuscription',
+  (req, res) => {
+    db.collection('saypd_supcription').find({estado: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ types : results });
+    })
+  }
+);
 
 
 //Other Services

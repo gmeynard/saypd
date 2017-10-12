@@ -14,18 +14,17 @@
         v-model="search"
       ></v-text-field>
     </v-card-title>
-    <UserAdd :onAdd='onUserAdd' title='Usuarios'/>
+    <UserAdd :onAdd='onUserAdd' title='Suscripcion'/>
     <v-data-table
         :headers="headers"
         :items="users"
         :search="search"
-        rowsPerPageText="Usuarios por pagina"
+        rowsPerPageText="Filas por pagina"
     >
       <template slot="items" scope="props">
-        <td class="text-xs-center">{{ props.item.name }}</td>
-        <td class="text-xs-center">{{ props.item.lastname }}</td>
         <td class="text-xs-center">{{ props.item.email }}</td>
-        <td class="text-xs-center">+56 9 {{ props.item.cel }}</td>
+        <td class="text-xs-center">{{ props.item.notification }}</td>
+        <td class="text-xs-center">{{ props.item.alert }}</td>
         <td class="text-xs-center" v-if="props.item.estado == 'A'" >
           <v-icon success>check_circle</v-icon>
         </td>
@@ -33,20 +32,19 @@
           <v-icon error>error</v-icon>
         </td>
         <td class="text-xs-center">
-          <UserEdit :onAdd='onUserAdd' :usuario="props.item" title='Editar Usuario'/>
           <v-btn fab dark small class="red" v-if="props.item.estado == 'A'"
-            @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Desactivar Usuario' }">
+            @click="changeState(props.item)"
+            v-tooltip:left="{ html: 'Desactivar Suscripcion' }">
               <v-icon>remove</v-icon>
           </v-btn>
           <v-btn fab dark small class="green" v-if="props.item.estado == 'I'"
-            @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Activar Usuario' }">
+            @click="changeState(props.item)"
+            v-tooltip:left="{ html: 'Activar Suscripcion' }">
               <v-icon>check</v-icon>
           </v-btn>
           <v-btn fab dark small class="red"
-            @click="deleteType(props.item.email)"
-            v-tooltip:left="{ html: 'Eliminar Usuario' }">
+            @click="deleteType(props.item)"
+            v-tooltip:left="{ html: 'Eliminar Suscripcion' }">
               <v-icon>delete</v-icon>
           </v-btn>
         </td>
@@ -72,20 +70,19 @@
 </style>
 <script>
   import axios from 'axios';
-  import UserAdd from './saypd_user_add.vue';
-  import UserEdit from './saypd_user_edit.vue';
+  import UserAdd from './saypd_subcription_add.vue';
+
 
   export default {
     data: () => ({
       headers: [
-        { text: 'Nombre', value: 'nombre', align: 'center' },
-        { text: 'Apellidos', value: 'lastname', align: 'center' },
-        { text: 'Email', value: 'email', align: 'center' },
-        { text: 'Celular', value: 'cel', align: 'center' },
+        { text: 'Usuario', value: 'nombre', align: 'center' },
+        { text: 'Tipo', value: 'lastname', align: 'center' },
+        { text: 'Alerta', value: 'email', align: 'center' },
         { text: 'Estado', value: 'estado', align: 'center' },
         { text: 'Accion', align: 'center' }
       ],
-      title: "Usuarios",
+      title: "Suscripciones",
       users: [],
       search: '',
       pagination: {},
@@ -101,8 +98,7 @@
       transition: 'slide-x-reverse-transition'
     }),
     components : {
-      UserAdd,
-      UserEdit
+      UserAdd
     },
     beforeMount() {
       this.update();
@@ -110,20 +106,24 @@
     methods: {
       onUserAdd(user) {
         this.update();
-    },
-      changeState(email,estado) {
-        axios.post('/api/userUpdateState',{
-           email:email,
-           state: estado
+      },
+      changeState(suscription) {
+        axios.post('/api/stateSupcription',{
+           email:suscription.email,
+           notification:suscription.notification,
+           alert:suscription.alert,
+           estado: suscription.estado
         }).then(() => {
           this.update();
         }).catch(res => {
              this.alertError = true;
         });
       },
-      deleteType(id) {
-        axios.post('/api/removeUser',{
-            email:id
+      deleteType(suscription) {
+        axios.post('/api/removeSupcription',{
+          email:suscription.email,
+          notification:suscription.notification,
+          alert:suscription.alert
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -131,12 +131,12 @@
         });
       },
       update() {
-        axios.get('/api/users')
-          .then(( { data : userData }) => {
-            console.log(userData.users);
-              this.users = userData.users;
+        axios.get('/api/listSuscription')
+          .then(({ data }) => {
+              console.log(data.types);
+              this.users = data.types;
               console.log(this.users);
-          });
+      });
       }
     }
   }

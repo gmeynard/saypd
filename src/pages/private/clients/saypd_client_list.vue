@@ -14,12 +14,12 @@
         v-model="search"
       ></v-text-field>
     </v-card-title>
-    <UserAdd :onAdd='onUserAdd' title='Usuarios'/>
+    <UserAdd :onAdd='onUserAdd' title='Clientes'/>
     <v-data-table
         :headers="headers"
         :items="users"
         :search="search"
-        rowsPerPageText="Usuarios por pagina"
+        rowsPerPageText="Clientes por pagina"
     >
       <template slot="items" scope="props">
         <td class="text-xs-center">{{ props.item.name }}</td>
@@ -33,20 +33,20 @@
           <v-icon error>error</v-icon>
         </td>
         <td class="text-xs-center">
-          <UserEdit :onAdd='onUserAdd' :usuario="props.item" title='Editar Usuario'/>
+          <UserEdit :onAdd='onUserAdd' :usuario="props.item" title='Editar Cliente'/>
           <v-btn fab dark small class="red" v-if="props.item.estado == 'A'"
             @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Desactivar Usuario' }">
+            v-tooltip:left="{ html: 'Desactivar Cliente' }">
               <v-icon>remove</v-icon>
           </v-btn>
           <v-btn fab dark small class="green" v-if="props.item.estado == 'I'"
             @click="changeState(props.item.email,props.item.estado)"
-            v-tooltip:left="{ html: 'Activar Usuario' }">
+            v-tooltip:left="{ html: 'Activar Cliente' }">
               <v-icon>check</v-icon>
           </v-btn>
           <v-btn fab dark small class="red"
             @click="deleteType(props.item.email)"
-            v-tooltip:left="{ html: 'Eliminar Usuario' }">
+            v-tooltip:left="{ html: 'Eliminar Cliente' }">
               <v-icon>delete</v-icon>
           </v-btn>
         </td>
@@ -72,8 +72,8 @@
 </style>
 <script>
   import axios from 'axios';
-  import UserAdd from './saypd_user_add.vue';
-  import UserEdit from './saypd_user_edit.vue';
+  import UserAdd from './saypd_client_add.vue';
+  import UserEdit from './saypd_client_edit.vue';
 
   export default {
     data: () => ({
@@ -85,7 +85,7 @@
         { text: 'Estado', value: 'estado', align: 'center' },
         { text: 'Accion', align: 'center' }
       ],
-      title: "Usuarios",
+      title: "Clientes",
       users: [],
       search: '',
       pagination: {},
@@ -123,7 +123,7 @@
       },
       deleteType(id) {
         axios.post('/api/removeUser',{
-            email:id
+           email:id
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -131,7 +131,7 @@
         });
       },
       update() {
-        axios.get('/api/users')
+        axios.get('/api/clients')
           .then(( { data : userData }) => {
             console.log(userData.users);
               this.users = userData.users;

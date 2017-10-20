@@ -2,7 +2,7 @@ import Vue from 'vue';
 import axios from 'axios';
 import Vuetify from 'vuetify';
 import VueRouter from 'vue-router';
-//require('./../node_modules/vuetify/dist/vuetify.min.css')
+import Gojs from 'gojs';
 //public
 import Contenedor from './pages/public/saypd_contenedor.vue';
 import Home from './pages/public/saypd_home.vue';
@@ -19,7 +19,12 @@ import ClientList from './pages/private/clients/saypd_client_list.vue';
 
 //Supcription
 import SupcriptionList from './pages/private/supcription/saypd_supcription_list.vue';
- 
+
+//Programacion
+import FunctionList from './pages/private/function/saypd_function_list.vue';
+import ExecutionList from './pages/private/execution/saypd_execution_list.vue';
+//import FlowChart from './pages/private/flowchart/flowchart_demo.vue';
+
 import VueChart from 'vue-chart-js';
 import AlertaListProyectos from './alerta_list_proyectos.vue';
 
@@ -78,6 +83,18 @@ const routes = [
     meta:{conditionalRoute:true}
   },
   {
+    path: '/listFunction',
+    name: 'FunctionList',
+    component: FunctionList,
+    meta:{conditionalRoute:true}
+  },
+  {
+    path: '/listExecution',
+    name: 'ExecutionList',
+    component: ExecutionList,
+    meta:{conditionalRoute:true}
+  },
+  {
     path: '*',
     redirect: '/'
   },
@@ -91,6 +108,7 @@ const router = new VueRouter({
 
 Vue.use(Vuetify);
 Vue.use(VueRouter);
+Vue.use(Gojs);
 
 const vm = new Vue({
   el: '#app-container',

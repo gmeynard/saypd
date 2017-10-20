@@ -97,7 +97,10 @@
         { title: 'Clientes', icon: 'account_circle', to: '/clients',perfil : 'SISTEMA' },
         { title: 'Tipo Alertas', icon: 'warning', to: '/listTypeAlert', perfil : 'SISTEMA'  },
         { title: 'Tipo Notificacion', icon: 'mail', to: '/listTypeNotification', perfil : 'SISTEMA'},
-        { title: 'Suscripciones', icon: 'mail', to: '/listSupcriptions', perfil : 'SISTEMA'  }
+        { title: 'Suscripciones', icon: 'mail', to: '/listSupcriptions', perfil : 'SISTEMA'  },
+        { heading: 'Programacion', perfil : 'SISTEMA'},
+        { title: 'Funciones', icon: 'functions', to: '/listFunction', perfil : 'SISTEMA'  },
+        { title: 'Ejecuciones Internas', icon: 'play_circle_outline', to: '/listExecution', perfil : 'SISTEMA'  }
       ],
       mini: false,
       right: null

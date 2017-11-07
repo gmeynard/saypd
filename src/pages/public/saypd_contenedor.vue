@@ -100,7 +100,8 @@
         { title: 'Suscripciones', icon: 'mail', to: '/listSupcriptions', perfil : 'SISTEMA'  },
         { heading: 'Programacion', perfil : 'SISTEMA'},
         { title: 'Funciones', icon: 'functions', to: '/listFunction', perfil : 'SISTEMA'  },
-        { title: 'Ejecuciones Internas', icon: 'play_circle_outline', to: '/listExecution', perfil : 'SISTEMA'  }
+        { title: 'Ejecuciones Internas', icon: 'play_circle_outline', to: '/listExecution', perfil : 'SISTEMA'  },
+        { title: 'Acciones', icon: 'view_list', to: '/listAction', perfil : 'SISTEMA'  }
       ],
       mini: false,
       right: null

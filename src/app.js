@@ -23,6 +23,7 @@ import SupcriptionList from './pages/private/supcription/saypd_supcription_list.
 //Programacion
 import FunctionList from './pages/private/function/saypd_function_list.vue';
 import ExecutionList from './pages/private/execution/saypd_execution_list.vue';
+import ActionList from './pages/private/actions/saypd_action_list.vue';
 //import FlowChart from './pages/private/flowchart/flowchart_demo.vue';
 
 import VueChart from 'vue-chart-js';
@@ -92,6 +93,12 @@ const routes = [
     path: '/listExecution',
     name: 'ExecutionList',
     component: ExecutionList,
+    meta:{conditionalRoute:true}
+  },
+  {
+    path: '/listAction',
+    name: 'ActionList',
+    component: ActionList,
     meta:{conditionalRoute:true}
   },
   {

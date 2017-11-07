@@ -1,6 +1,6 @@
 <template>
     <v-dialog v-model="dialog" width="50%">
-      <v-btn @click="update" v-tooltip:right="{ html: 'Probar Ejecucion' }"
+      <v-btn @click="update" v-tooltip:right="{ html: 'Probar Funcion' }"
         fab dark small class="blue" slot="activator">
         <v-icon>playlist_add_check</v-icon>
       </v-btn>
@@ -28,7 +28,10 @@
                   <v-text-field name="name" v-model="name" label="Nombre" disabled></v-text-field>
                 </v-flex>
                 <v-flex xs10>
-                  <v-text-field name="parameters" v-model="grammatic" label="Ejecucion a Probar" textarea disabled></v-text-field>
+                  <v-text-field name="parameters" v-model="parameters" label="Parametros" disabled></v-text-field>
+                </v-flex>
+                <v-flex xs10>
+                  <v-text-field name="values" v-model="values" label="Valores"></v-text-field>
                 </v-flex>
                 <v-flex xs10>
                   <v-text-field name="response" v-model="response" label="Respuesta" textarea></v-text-field>
@@ -56,7 +59,7 @@
     data () {
       return {
         name: '',
-        grammatic: '',
+        parameters: '',
         response: '',
         dialog: false,
         alert:false,
@@ -65,9 +68,10 @@
     },
     methods: {
       submit () {
-        axios.post('/api/testExecution',{
+        axios.post('/api/testFunction',{
            name:this.name,
-           grammatic:this.grammatic,
+           parameters:this.parameters,
+           values: this.values,
            state:'A'
         }).then(({ data }) => {
             if(data.estado == 'OK'){
@@ -75,6 +79,7 @@
               this.alert = true;
               this.isDisabled = true;
             }else{
+              console.log(data.status);
               this.error = data.pre;
               this.alertError = true;
             }
@@ -85,23 +90,14 @@
       },
       clear () {
         this.name = '';
-        this.grammatic = '';
+        this.parameters = '';
         this.alert = false;
         this.alertError = false;
         this.isDisabled = false;
       },
       update () {
         this.name = this.object.name;
-
-        var funcion = this.object.funcion + '(';
-        var params = '';
-        this.object.parameters.map(function(param){
-          console.log(params);
-          params = params == '' ?  '"'+param.value+'"' : params + ', "'+ param.value+'"';
-        });
-        funcion = funcion + params + ');';
-        console.log(funcion);
-        this.grammatic = funcion;
+        this.parameters = this.object.parameters;
       }
    },
    computed: {

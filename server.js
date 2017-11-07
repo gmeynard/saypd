@@ -119,18 +119,23 @@ function isAuthenticated(req, res, next) {
   return next();
 }
 
-function sendMail (p_host,p_port,p_from,p_to,p_subject,p_html){
-
+function sendMail (idAlerta, p_host,p_port,p_from,p_to,p_subject,p_html){
+    console.log("p_host:"+p_host);
+    console.log("p_port:"+p_port);
+    console.log("p_from:"+p_from);
+    console.log("p_to:"+p_to);
+    console.log("p_subject:"+p_subject);
+    console.log("p_html:"+p_html);
     var smtpTransport = nodemailer.createTransport({
-      host: p_host,
+          host: p_host,
           port: p_port,
           secure: false // true for 465, false for other ports
       });
     var mailOptions = {
         from: p_from, // sender address
         to: [p_to], // list of receivers
-        subject: p_subject, // Subject line
-        html: p_html // html body
+        subject: p_subject + '. Id '+idAlerta, // Subject line
+        html: p_html + ' Id '+idAlerta  // html body
     }
     smtpTransport.sendMail(mailOptions, function(error, response){
       if(error){
@@ -141,8 +146,13 @@ function sendMail (p_host,p_port,p_from,p_to,p_subject,p_html){
   });
 }
 
-function sendMail (p_to,p_subject,p_html){
+function printPene (p_para){
+    console.log("   !  ");
+    console.log("(¨¨¨¨¨)");
+    console.log(" |¨¨¨|");
+}
 
+function sendMailInterno (p_to,p_subject,p_html){
     var smtpTransport = nodemailer.createTransport({
       host: 'localhost',
           port: 25,
@@ -715,7 +725,7 @@ apiRoutes.post('/updateExecution',
         if (results>1)
            return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
 
-       db.collection('saypd_execution').updateMany({name:req.body.name},{$set : {'grammatic': req.body.grammatic}},
+       db.collection('saypd_execution').updateMany({name:req.body.name},{$set : {'funcion': req.body.funcion, 'parameters':req.body.parameters}},
          function (err, result) {
            if (err)
              return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
@@ -780,13 +790,110 @@ apiRoutes.get('/listExecution',
   }
 );
 
+//CRUD Actions
+//insert
+apiRoutes.post('/setAction',
+(req, res) => {
+    console.log("Ingresando a servicio setAction");
+    db.collection('saypd_action').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Action ya existe."});
+
+         db.collection('saypd_action').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+    })
+  }
+);
+
+//update
+apiRoutes.post('/updateAction',
+(req, res) => {
+    console.log("Ingresando a servicio updateAction");
+    console.log(req.body);
+    db.collection('saypd_action').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>1)
+           return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
+
+       db.collection('saypd_action').updateMany({name:req.body.name},{$set : {'grammatic': req.body.grammatic}},
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+       })
+
+    })
+  }
+);
+
+//update
+apiRoutes.post('/validateAction',
+(req, res) => {
+    console.log("Ingresando a servicio validateAction");
+    console.log(req.body);
+
+
+    return res.status(201).json({estado:"OK", descripcion:"funcion ejecutada", object:f});
+  }
+);
+
+//updateState
+apiRoutes.post('/stateAction',
+  (req, res) => {
+    console.log("Ingresando a servicio stateAction");
+    console.log(req.body.email);
+    var stateNew = req.body.state == 'A' ? 'I' : 'A';
+    db.collection('saypd_action').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
+
+//updateState
+apiRoutes.post('/removeAction',
+  (req, res) => {
+    console.log("Ingresando a servicio removeAction");
+    var stateNew = 'E'
+    db.collection('saypd_action').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
+
+//getList
+apiRoutes.get('/listAction',
+  (req, res) => {
+    db.collection('saypd_action').find({state: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ types : results });
+    })
+  }
+);
+
+
 
 //Other Services
 
 // Obtener alertas
 apiRoutes.get('/alertas',
   (req, res) => {
-    db.collection('alertas').find().toArray(function(err, results) {
+    db.collection('saypd_alerts').find().toArray(function(err, results) {
       if (err) return console.log(err)
       res.status(201).json({ alertas : results });
     })
@@ -798,14 +905,14 @@ apiRoutes.post('/getAccion',
   (req, res) => {
     console.log("entro a servicio getAccion");
     console.log(req.body.idAlerta);
-    db.collection('acciones').find({idAlerta:req.body.idAlerta}).count(
+    db.collection('saypd_work').find({idAlert:req.body.idAlerta}).count(
       function(err, results) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
         // if (results>1)
         //   return res.send({estado:"NOK", descripcion:"Existen multiples acciones a un sensor en estado pendiente."});
 
-        db.collection('acciones').find({idAlerta:req.body.idAlerta}).toArray(
+        db.collection('saypd_work').find({idAlert:req.body.idAlerta}).toArray(
           function(err, results) {
             if (err)
               return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
@@ -824,7 +931,7 @@ apiRoutes.post('/endAccion',
           return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
     })
 
-    db.collection('alertas').updateMany({idAlerta:req.body.idAlerta,estado:'A'},{$set : {'estado': 'C'}},
+    db.collection('saypd_alerts').updateMany({idAlerta:req.body.idAlerta,estado:'A'},{$set : {'estado': 'C'}},
       function (err, result) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
@@ -838,11 +945,11 @@ apiRoutes.post('/setAccion',
   (req, res) => {
     console.log("Ingresando a servicio setAccion");
     console.log(req.body);
-    db.collection('acciones').save(req.body, (err, result) => {
+    db.collection('saypd_work').save(req.body, (err, result) => {
         if (err) return res.status(201).json({estado:"NOK", descripcion:"Error al guardar el registro"});
     })
     console.log(req.body.idAlerta);
-    db.collection('alertas').updateMany({idAlerta:req.body.idAlerta,estado:'E'},{$set : {'estado': 'A'}},
+    db.collection('saypd_alerts').updateMany({idAlerta:req.body.idAlerta,estado:'E'},{$set : {'estado': 'A'}},
       function (err, result) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
@@ -852,11 +959,28 @@ apiRoutes.post('/setAccion',
   }
 );
 
+function setAction(idAlerta, codigo, descripcion){
+  console.log("Ingresando a servicio setAccion");
+  console.log(codigo +','+ descripcion);
+  var json = {'idAlert':idAlerta,'codigo':codigo,'descripcion':descripcion};
+  db.collection('saypd_work').save(json, (err, result) => {
+      if (err) return false;
+  })
+
+  db.collection('saypd_alerts').updateMany({idAlerta:idAlerta,estado:'E'},{$set : {'estado': 'A'}},
+    function (err, result) {
+      if (err)
+        return false;
+  })
+  return true;
+
+}
+
 // Add an exclamation
 apiRoutes.post('/recibirAlertas',
   (req, res) => {
     console.log(req.body);
-    db.collection('alertas').save(req.body, (err, result) => {
+    db.collection('saypd_alerts').save(req.body, (err, result) => {
         if (err) return console.log(err)
         console.log('saved to database')
     })
@@ -867,12 +991,59 @@ apiRoutes.post('/recibirAlertas',
       if (err) return console.log(err)
       results.map(function(supcription){
         var html = "Se a ingresado una alerta.\n Nombre:"+req.body.nombre+"\n Tipo:"+req.body.tipo+"\n Fecha:"+req.body.fecha+"\n Hora:"+req.body.hora+"\n Atte. Equipo SAYD"
-        sendMail (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
+        sendMailInterno (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
       })
     })
 
-
-
+    //Generacion de Acciones
+    db.collection('saypd_action').find({state: { $in: [ "A", "I" ] }, alertType : req.body.tipo}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      results.map(function(result){
+        if(result.grammatic != ''){
+          //console.log(result.grammatic);
+          var lineas = result.grammatic.split("\n");
+          lineas.map(function(linea){
+            if(linea != '')
+              //LLamado de tipos de llamadas
+              if(linea.startsWith('funcion:')){
+                if(linea.includes('(')){
+                  //funcion parametrizada
+                  //console.log("entro a funcion con parametros");
+                  var length = 'funcion:'.length;
+                  var funcion = linea.substring(length, (linea.length));
+                  //agregamos parametro de alerta
+                  var funcionSplit = funcion.split("(");
+                  var cabecera = funcionSplit[0];
+                  var parametros = funcionSplit[1];
+                  funcion = cabecera +'("' + req.body.idAlerta +'",'+parametros;
+                  console.log(funcion);
+                  eval(funcion);
+                }else{
+                  var length = 'funcion:'.length;
+                  var call = linea.substring(length, (linea.length-1));
+                  console.log(call);
+                  db.collection('saypd_execution').find({state: { $in: [ "A", "I" ] }, funcion: call }).toArray(function(err, results) {
+                    if (err) return console.log(err)
+                    results.map(function(result){
+                      //console.log(result.funcion);
+                      var funcion = result.funcion + '("'+ req.body.idAlerta + '",';
+                      var params = '';
+                      //console.log(result.parameters);
+                      result.parameters.map(function(param){
+                        console.log(params);
+                        params = params == '' ?  '"'+param.value+'"' : params + ', "'+ param.value+'"';
+                      });
+                      funcion = funcion + params + ');';
+                      console.log(funcion);
+                      eval(funcion);
+                    })
+                  })
+                }
+              }
+          })
+        }
+      })
+    })
     res.status(201).json("OK");
   }
 );

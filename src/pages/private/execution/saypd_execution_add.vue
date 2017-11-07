@@ -31,9 +31,9 @@
                   @blur="$v.name.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10>
-                  <v-text-field name="name" v-model="name" label="Nombre Funcion"
-                  :error-messages="nameErrors" @input="$v.name.$touch()"  placeholder="sendMail"
-                  @blur="$v.name.$touch()" required></v-text-field>
+                  <v-text-field name="funcion" v-model="funcion" label="Nombre Funcion"
+                  :error-messages="funcionErrors" @input="$v.funcion.$touch()"  placeholder="sendMail"
+                  @blur="$v.funcion.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10>
                   <v-card>
@@ -50,7 +50,35 @@
                         hide-actions
                       >
                       <template slot="items" scope="props">
-                        <td>{{ props.item }}</td>
+                        <td>
+                          <v-edit-dialog lazy> {{ props.item.param }}
+                            <v-text-field
+                              slot="input"
+                              label="Edit"
+                              v-model="props.item.param"
+                              single-line
+                              counter
+                            ></v-text-field>
+                          </v-edit-dialog>
+                        </td>
+                        <td>
+                          <v-edit-dialog lazy> {{ props.item.value }}
+                            <v-text-field
+                              slot="input"
+                              label="Edit"
+                              v-model="props.item.value"
+                              single-line
+                              counter
+                            ></v-text-field>
+                          </v-edit-dialog>
+                        </td>
+                        <td class="text-xs-center">
+                          <v-btn fab dark small class="red"
+                          @click="deleteParam(props.item)"
+                          v-tooltip:left="{ html: 'Eliminar Parametro' }">
+                            <v-icon>delete</v-icon>
+                          </v-btn>
+                        </td>
                       </template>
                     </v-data-table>
                   </v-card>
@@ -81,19 +109,22 @@
     mixins: [validationMixin],
     validations: {
      name: { required },
-     grammatic: { required }
+     funcion: { required }
     },
     props: ['onAdd', 'title'],
     data () {
       return {
         headers: [
-          { text: 'Nombre', value: 'nombre', align: 'center' },
+          { text: 'Nombre', value: 'param', align: 'center', sortable: false },
+          { text: 'Valor', value: 'value', align: 'center', sortable: false },
           { text: 'Accion', align: 'center' }
         ],
         title2: "Parametros",
         list: [],
+        param: '',
+        value:'',
         name: '',
-        grammatic: '',
+        funcion: '',
         isDisabled: false,
         dialog: false,
         alert:false,
@@ -105,9 +136,6 @@
       ParameterAdd,
     },
     methods: {
-      onAddParam(user) {
-        this.list.push(user);
-      },
       submit () {
         this.$v.$touch();
         if(this.$v.$invalid){
@@ -116,7 +144,8 @@
         }
         axios.post('/api/setExecution',{
            name:this.name,
-           grammatic: this.grammatic,
+           funcion: this.funcion,
+           parameters: this.list,
            state:'A'
         }).then(({ data }) => {
             if(data.estado == 'OK'){
@@ -131,15 +160,28 @@
              this.alertError = true;
         });
       },
+      deleteParam(name) {
+        var index = this.list.indexOf(name);
+        if (index > -1) {
+            this.list.splice(index, 1);
+        }
+      },
+      addParam(name) {
+        this.list.push(name);
+      },
       clear () {
         this.name = '';
-        this.grammatic = '';
+        this.funcion = '';
         this.alert = false;
         this.alertError = false;
         this.isDisabled = false;
       },
       addRow () {
         console.log("agregar row");
+        var param = "AddParameter";
+        var value = "AddValue";
+        var json = {'param':param, 'value':value}
+        this.list.push(json);
       }
    },
    computed: {
@@ -149,10 +191,10 @@
           !this.$v.name.required && errors.push('Nombre es requerido.')
         return errors
       },
-      grammaticErrors () {
+      funcionErrors () {
         const errors = []
-        if (!this.$v.grammatic.$dirty) return errors
-          !this.$v.grammatic.required && errors.push('Programacion es requerido.')
+        if (!this.$v.funcion.$dirty) return errors
+          !this.$v.funcion.required && errors.push('Nombre Funcion es requerido.')
         return errors
       },
    },

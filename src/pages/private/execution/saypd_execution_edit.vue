@@ -21,18 +21,66 @@
           <span class="headline">{{title}}</span>
         </v-card-title>
         <v-card-text>
-          <form id="editForm" >
+          <form id="addForm" >
             <v-container grid-list-md>
               <v-layout wrap>
                 <v-flex xs10>
-                  <v-text-field name="name" v-model="name" label="Nombre"
-                  :error-messages="nameErrors" @input="$v.name.$touch()" placeholder="myFunction"
+                  <v-text-field name="name" v-model="name" label="Nombre Ejecucion"
+                  :error-messages="nameErrors" @input="$v.name.$touch()"  placeholder="Enviar Email"
                   @blur="$v.name.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10>
-                  <v-text-field name="grammatic" v-model="grammatic" label="Programacion"
-                  :error-messages="grammaticErrors" @input="$v.grammatic.$touch()" textarea
-                  @blur="$v.grammatic.$touch()" required></v-text-field>
+                  <v-text-field name="funcion" v-model="funcion" label="Nombre Funcion"
+                  :error-messages="funcionErrors" @input="$v.funcion.$touch()"  placeholder="sendMail"
+                  @blur="$v.funcion.$touch()" required></v-text-field>
+                </v-flex>
+                <v-flex xs10>
+                  <v-card>
+                    <v-card-title>
+                      <h6 class="card-title">{{title2}}</h6>
+                    </v-card-title>
+                    <v-btn v-tooltip:right="{ html: 'Agregar Parametro' }"
+                      absolute dark fab top right class="green" @click="addRow" >
+                      <v-icon>add</v-icon>
+                    </v-btn>
+                    <v-data-table
+                        v-bind:headers="headers"
+                        :items="list"
+                        hide-actions
+                      >
+                      <template slot="items" scope="props">
+                        <td>
+                          <v-edit-dialog lazy> {{ props.item.param }}
+                            <v-text-field
+                              slot="input"
+                              label="Edit"
+                              v-model="props.item.param"
+                              single-line
+                              counter
+                            ></v-text-field>
+                          </v-edit-dialog>
+                        </td>
+                        <td>
+                          <v-edit-dialog lazy> {{ props.item.value }}
+                            <v-text-field
+                              slot="input"
+                              label="Edit"
+                              v-model="props.item.value"
+                              single-line
+                              counter
+                            ></v-text-field>
+                          </v-edit-dialog>
+                        </td>
+                        <td class="text-xs-center">
+                          <v-btn fab dark small class="red"
+                          @click="deleteParam(props.item)"
+                          v-tooltip:left="{ html: 'Eliminar Parametro' }">
+                            <v-icon>delete</v-icon>
+                          </v-btn>
+                        </td>
+                      </template>
+                    </v-data-table>
+                  </v-card>
                 </v-flex>
               </v-layout>
             </v-container>
@@ -57,13 +105,22 @@
     mixins: [validationMixin],
     validations: {
       name: { required },
-      grammatic: { required }
+      funcion: { required }
     },
     props: ['onAdd', 'title','object'],
     data () {
       return {
+        headers: [
+          { text: 'Nombre', value: 'param', align: 'center', sortable: false },
+          { text: 'Valor', value: 'value', align: 'center', sortable: false },
+          { text: 'Accion', align: 'center' }
+        ],
+        title2: "Parametros",
+        list: [],
+        param: '',
+        value:'',
         name: '',
-        grammatic: '',
+        funcion: '',
         dialog: false,
         alert:false,
         alertError:false
@@ -78,7 +135,8 @@
         }
         axios.post('/api/updateExecution',{
            name:this.name,
-           grammatic: this.grammatic,
+           funcion: this.funcion,
+           parameters: this.list,
            state:'A'
         }).then(({ data }) => {
             if(data.estado == 'OK'){
@@ -101,8 +159,17 @@
         this.isDisabled = false;
       },
       update () {
+        console.log(this.object.parameters);
         this.name = this.object.name;
-        this.grammatic = this.object.grammatic;
+        this.funcion = this.object.funcion;
+        this.list = this.object.parameters;
+      },
+      addRow () {
+        console.log("agregar row");
+        var param = "AddParameter";
+        var value = "AddValue";
+        var json = {'param':param, 'value':value}
+        this.list.push(json);
       }
    },
    computed: {

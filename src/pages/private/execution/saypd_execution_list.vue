@@ -44,7 +44,7 @@
             v-tooltip:left="{ html: 'Eliminar Ejecucion' }">
               <v-icon>delete</v-icon>
           </v-btn>
-          <ExecutionTest :object="props.item" title='Probar Ejecucion'/>
+          <!--ExecutionTest :object="props.item" title='Probar Ejecucion'/-->
         </td>
       </template>
       <template slot="pageText" scope="{ pageStart, pageStop }">

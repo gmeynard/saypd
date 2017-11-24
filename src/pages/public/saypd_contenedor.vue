@@ -89,16 +89,14 @@
       drawer: true,
       items: [
         { title: 'Alertas', icon: 'warning' , to: '/alerts', router: true, perfil :'ALL' },
-        { title: 'Sensores', icon: 'featured_play_list', perfil :'ALL' },
-        { title: 'Proyectos', icon: 'archive', to: '/proyectos', router: true, perfil :'ALL' },
         { divider: true },
-        { heading: 'Configuración', perfil : 'SISTEMA'},
         { title: 'Usuarios', icon: 'account_circle', to: '/users', perfil : 'SISTEMA' },
+        { title: 'Proyectos', icon: 'archive', to: '/listProject', router: true, perfil :'SISTEMA' },
         { title: 'Clientes', icon: 'account_circle', to: '/clients',perfil : 'SISTEMA' },
         { title: 'Tipo Alertas', icon: 'warning', to: '/listTypeAlert', perfil : 'SISTEMA'  },
         { title: 'Tipo Notificacion', icon: 'mail', to: '/listTypeNotification', perfil : 'SISTEMA'},
         { title: 'Suscripciones', icon: 'mail', to: '/listSupcriptions', perfil : 'SISTEMA'  },
-        { heading: 'Programacion', perfil : 'SISTEMA'},
+        { divider: true },
         { title: 'Funciones', icon: 'functions', to: '/listFunction', perfil : 'SISTEMA'  },
         { title: 'Ejecuciones Internas', icon: 'play_circle_outline', to: '/listExecution', perfil : 'SISTEMA'  },
         { title: 'Acciones', icon: 'view_list', to: '/listAction', perfil : 'SISTEMA'  }

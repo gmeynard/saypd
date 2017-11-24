@@ -16,6 +16,7 @@ import TypeNotificationList from './pages/private/typeNotification/saypd_typenot
 //users
 import UserList from './pages/private/users/saypd_user_list.vue';
 import ClientList from './pages/private/clients/saypd_client_list.vue';
+import ProjectList from './pages/private/projects/saypd_project_list.vue';
 
 //Supcription
 import SupcriptionList from './pages/private/supcription/saypd_supcription_list.vue';
@@ -99,6 +100,12 @@ const routes = [
     path: '/listAction',
     name: 'ActionList',
     component: ActionList,
+    meta:{conditionalRoute:true}
+  },
+  {
+    path: '/listProject',
+    name: 'ProjectList',
+    component: ProjectList,
     meta:{conditionalRoute:true}
   },
   {

@@ -1,3 +1,5 @@
+
+</style>
 <template>
   <v-container fluid>
   <v-card>
@@ -12,39 +14,40 @@
         v-model="search"
       ></v-text-field>
     </v-card-title>
-    <FunctionAdd :onAdd='onAdd' title='Funcion'/>
+    <ProjectAdd :onAdd='onProjectAdd' title='Proyectos'/>
     <v-data-table
         :headers="headers"
-        :items="list"
+        :items="projects"
         :search="search"
-        rowsPerPageText="Funciones por pagina"
+        rowsPerPageText="Proyectos por pagina"
     >
       <template slot="items" scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
         <td class="text-xs-center">{{ props.item.name }}</td>
-        <td class="text-xs-center" v-if="props.item.state == 'A'" >
+        <td class="text-xs-center">+56 9 {{ props.item.cel }}</td>
+        <td class="text-xs-center" v-if="props.item.estado == 'A'" >
           <v-icon success>check_circle</v-icon>
         </td>
-        <td class="text-xs-center" v-if="props.item.state == 'I'" >
+        <td class="text-xs-center" v-if="props.item.estado == 'I'" >
           <v-icon error>error</v-icon>
         </td>
         <td class="text-xs-center">
-          <FunctionEdit :onAdd='onAdd' :object="props.item" title='Editar Funcion'/>
-          <v-btn fab dark small class="red" v-if="props.item.state == 'A'"
-            @click="changeState(props.item.name,props.item.state)"
-            v-tooltip:left="{ html: 'Desactivar Funcion' }">
+          <ProjectEdit :onAdd='onProjectAdd' :project="props.item" title='Editar Proyecto'/>
+          <v-btn fab dark small class="red" v-if="props.item.estado == 'A'"
+            @click="changeState(props.item.id,props.item.estado)"
+            v-tooltip:left="{ html: 'Desactivar Proyecto' }">
               <v-icon>remove</v-icon>
           </v-btn>
-          <v-btn fab dark small class="green" v-if="props.item.state == 'I'"
-            @click="changeState(props.item.name,props.item.state)"
-            v-tooltip:left="{ html: 'Activar Funcion' }">
+          <v-btn fab dark small class="green" v-if="props.item.estado == 'I'"
+            @click="changeState(props.item.id,props.item.estado)"
+            v-tooltip:left="{ html: 'Activar Proyecto' }">
               <v-icon>check</v-icon>
           </v-btn>
           <v-btn fab dark small class="red"
-            @click="deleteType(props.item.name)"
-            v-tooltip:left="{ html: 'Eliminar Funcion' }">
+            @click="deleteType(props.item.id)"
+            v-tooltip:left="{ html: 'Eliminar Proyecto' }">
               <v-icon>delete</v-icon>
           </v-btn>
-          <!--FunctionTest :object="props.item" title='Probar Funcion'/-->
         </td>
       </template>
       <template slot="pageText" scope="{ pageStart, pageStop }">
@@ -68,19 +71,20 @@
 </style>
 <script>
   import axios from 'axios';
-  import FunctionAdd from './saypd_function_add.vue';
-  import FunctionEdit from './saypd_function_edit.vue';
-  import FunctionTest from './saypd_function_test.vue';
+  import ProjectAdd from './saypd_project_add.vue';
+  import ProjectEdit from './saypd_project_edit.vue';
 
   export default {
     data: () => ({
       headers: [
-        { text: 'Nombre', value: 'nombre', align: 'center' },
+        { text: 'Id', value: 'id', align: 'center' },
+        { text: 'Proyecto', value: 'nombre', align: 'center' },
+        { text: 'Contacto ', value: 'cel', align: 'center' },
         { text: 'Estado', value: 'estado', align: 'center' },
         { text: 'Accion', align: 'center' }
       ],
-      title: "Funciones",
-      list: [],
+      title: "Proyectos",
+      projects: [],
       search: '',
       pagination: {},
       direction: "left",
@@ -95,21 +99,20 @@
       transition: 'slide-x-reverse-transition'
     }),
     components : {
-      FunctionAdd,
-      FunctionEdit,
-      FunctionTest
+      ProjectAdd,
+      ProjectEdit
     },
     beforeMount() {
       this.update();
     },
     methods: {
-      onAdd(user) {
+      onProjectAdd(project) {
         this.update();
-      },
-      changeState(id,state) {
-        axios.post('/api/stateFunction',{
-           name:id,
-           state: state
+    },
+      changeState(id,estado) {
+        axios.post('/api/stateProject',{
+           id:id,
+           estado: estado
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -117,8 +120,8 @@
         });
       },
       deleteType(id) {
-        axios.post('/api/removeFunction',{
-           name:id
+        axios.post('/api/removeProject',{
+           id:id
         }).then(() => {
           this.update();
         }).catch(res => {
@@ -126,9 +129,9 @@
         });
       },
       update() {
-        axios.get('/api/listFunction')
-          .then(( { data : list }) => {
-              this.list = list.types;
+        axios.get('/api/listProject')
+          .then(( { data : projectsData }) => {
+              this.projects = projectsData.projects;
           });
       }
     }

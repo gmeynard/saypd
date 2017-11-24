@@ -45,7 +45,7 @@
             v-tooltip:left="{ html: 'Eliminar Accion' }">
               <v-icon>delete</v-icon>
           </v-btn>
-          <ActionTest :object="props.item" title='Validar Accion'/>
+          <!--ActionTest :object="props.item" title='Validar Accion'/-->
         </td>
       </template>
       <template slot="pageText" scope="{ pageStart, pageStop }">

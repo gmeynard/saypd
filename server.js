@@ -10,8 +10,9 @@ const uuid = require('node-uuid');
 const appData = require('./data.json');
 const nodemailer = require('nodemailer');
 const MongoClient = require('mongodb').MongoClient
-
-
+const http = require('http');
+const fs = require('fs');
+const readline = require('readline');
 // Create app data (mimics a DB)
 const userData = appData.users;
 const exclamationData = appData.exclamations;
@@ -22,7 +23,7 @@ function getUser(p_email) {
 };
 
 // Create default port
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Create a new server
 const server = express();
@@ -146,11 +147,6 @@ function sendMail (idAlerta, p_host,p_port,p_from,p_to,p_subject,p_html){
   });
 }
 
-function printPene (p_para){
-    console.log("   !  ");
-    console.log("(¨¨¨¨¨)");
-    console.log(" |¨¨¨|");
-}
 
 function sendMailInterno (p_to,p_subject,p_html){
     var smtpTransport = nodemailer.createTransport({
@@ -362,7 +358,6 @@ apiRoutes.post('/setTypeAlert',
              return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
            return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
          })
-
     })
   }
 );
@@ -582,14 +577,21 @@ apiRoutes.get('/listSuscription',
   }
 );
 
-var functions = [];
 //CRUD Functions
 //insert
 apiRoutes.post('/setFunction',
 (req, res) => {
     console.log("Ingresando a servicio setFunction");
-    var array = [req.body.parameters];
-    functions[req.body.name] = new Function([req.body.parameters], req.body.grammatic);
+    var inicio = '//inicio:'+req.body.name;
+    var cabecera = 'apiRoutes.post("/'+req.body.name+'",\n(req, res) => {';
+    var logica = req.body.grammatic;
+    var footer = '  }\n);'
+    var fin = '//fin:'+req.body.name;
+    var newdata = '\n'+ inicio +'\n'+ cabecera +'\n'+ logica +'\n'+ footer +'\n'+ fin;
+    fs.appendFile('ejecuciones.js', newdata, function (err) {
+       if (err) throw err;
+      console.log('Agrego Nueva Funcion');
+    });
     db.collection('saypd_function').find({name:req.body.name}).count(
       function(err, results) {
         if (err)
@@ -613,7 +615,48 @@ apiRoutes.post('/updateFunction',
 (req, res) => {
     console.log("Ingresando a servicio updateFunction");
     console.log(req.body);
-    functions[req.body.name] = new Function([req.body.parameters],req.body.grammatic);
+    var nameFuncion = req.body.name;
+    encontro = false;
+    var inicio = '//inicio:'+req.body.name;
+    var cabecera = 'apiRoutes.post("/'+req.body.name+'",\n(req, res) => {';
+    var logica = req.body.grammatic;
+    var footer = '  }\n);'
+    var fin = '//fin:'+req.body.name;
+    var newdata = '\n'+ inicio +'\n'+ cabecera +'\n'+ logica +'\n'+ footer +'\n'+ fin;
+
+   var i;
+   data_array = fs.readFileSync('ejecuciones.js', 'utf-8').split('\n');
+   var data_idis = [];
+   for (i = 0; i < data_array.length; i++){
+       if (data_array[i].match(fin)){
+         data_idis.push(i);
+         encontro = false;
+       }
+       if (data_array[i].match(inicio) || encontro){
+         data_idis.push(i);
+         encontro = true;
+       }
+   }
+   for(i= 0; i< data_idis.length; i++){
+       delete data_array[data_idis[i]];
+   }
+   names = [];
+   for (var i in data_array) {
+       if (data_array[i].length !== 0) {
+           names.push(data_array[i]);
+       }
+     }
+     var index = names.length +1;
+      names.push('\n')
+   data_result = names.join('\n');
+   fs.writeFile('ejecuciones.js', data_result, function (err) {
+      if (err) throw err;
+      console.log('Elimino!');
+   });
+   fs.appendFile('ejecuciones.js', newdata, function (err) {
+      if (err) throw err;
+     console.log('Agrego!');
+   });
     db.collection('saypd_function').find({name:req.body.name}).count(
       function(err, results) {
         if (err)
@@ -627,7 +670,6 @@ apiRoutes.post('/updateFunction',
              return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
            return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
        })
-
     })
   }
 );
@@ -905,14 +947,14 @@ apiRoutes.post('/getAccion',
   (req, res) => {
     console.log("entro a servicio getAccion");
     console.log(req.body.idAlerta);
-    db.collection('saypd_work').find({idAlert:req.body.idAlerta}).count(
+    db.collection('saypd_work').find({idAlerta:req.body.idAlerta}).count(
       function(err, results) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
         // if (results>1)
         //   return res.send({estado:"NOK", descripcion:"Existen multiples acciones a un sensor en estado pendiente."});
 
-        db.collection('saypd_work').find({idAlert:req.body.idAlerta}).toArray(
+        db.collection('saypd_work').find({idAlerta:req.body.idAlerta}).toArray(
           function(err, results) {
             if (err)
               return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
@@ -975,70 +1017,258 @@ function setAction(idAlerta, codigo, descripcion){
   return true;
 
 }
+var a = false;
+
+
+
+//CRUD Projects
+//insert
+apiRoutes.post('/setProject',
+(req, res) => {
+    console.log("Ingresando a servicio setProject");
+    console.log(req.body);
+
+    db.collection('saypd_project').find({id:req.body.id}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Tipo ya existe."});
+
+         db.collection('saypd_project').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+
+    })
+  }
+);
+
+//update
+apiRoutes.post('/updateProject',
+(req, res) => {
+    console.log("Ingresando a servicio updateProject");
+    console.log(req.body);
+    db.collection('saypd_project').find({id:req.body.id}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>1)
+           return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
+
+       db.collection('saypd_project').updateMany({id:req.body.id},{$set : {'name': req.body.name,'cel': req.body.cel}},
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+       })
+
+    })
+  }
+);
+
+//updateState
+apiRoutes.post('/stateProject',
+  (req, res) => {
+    console.log("Ingresando a servicio stateProject");
+    var stateNew = req.body.estado == 'A' ? 'I' : 'A';
+    db.collection('saypd_project').updateMany({id:req.body.id},{$set : {'estado': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
+
+//updateState
+apiRoutes.post('/removeProject',
+  (req, res) => {
+    console.log("Ingresando a servicio removeProject");
+    var stateNew = 'E'
+    db.collection('saypd_project').updateMany({id:req.body.id},{$set : {'estado': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
+
+//getList
+apiRoutes.get('/listProject',
+  (req, res) => {
+      console.log("Ingresando a servicio listProject");
+    db.collection('saypd_project').find({estado: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      console.log(results);
+      res.status(201).json({ projects : results });
+    })
+  }
+);
+
+//Agregar accion asociada a un sensor
+function callService(json, nameService, callback){
+    console.log("Ingresando a servicio callService");
+      /**
+       * HOW TO Make an HTTP Call - POST
+       */
+      // do a POST request
+      // create the JSON object
+      console.log("json",json);
+      console.log("nameService",nameService);
+      jsonObject = JSON.stringify(json);
+
+      // prepare the header
+      var postheaders = {
+          'Content-Type' : 'application/json',
+          'Content-Length' : Buffer.byteLength(jsonObject, 'utf8')
+      };
+
+      // the post options
+      var optionspost = {
+          host : 'localhost',
+          port : 3001,
+          path : '/api/'+nameService,
+          method : 'POST',
+          headers : postheaders
+      };
+
+      //the POST call
+      var salida=[];
+      var reqPost = http.request(optionspost, function(res) {
+
+          console.log("statusCode: ", res.statusCode);
+          res.on('data', function(d) {
+              salida.push(d);
+          });
+          res.on('end', function() {
+            salida = Buffer.concat(salida).toString();
+            callback(JSON.parse(salida));
+          });
+
+      });
+
+      // write the json data
+      reqPost.write(jsonObject);
+      reqPost.on('error', function(e) {
+          console.error(e);
+      });
+      reqPost.end();
+  }
 
 // Add an exclamation
 apiRoutes.post('/recibirAlertas',
   (req, res) => {
+    console.log("entro a recibir alerta");
     console.log(req.body);
-    db.collection('saypd_alerts').save(req.body, (err, result) => {
-        if (err) return console.log(err)
-        console.log('saved to database')
-    })
-
-    //obtener Subscripcion
-    console.log("buscando suscripciones");
-    db.collection('saypd_supcription').find({estado: { $in: [ "A", "I" ] }, alert : req.body.tipo}).toArray(function(err, results) {
-      if (err) return console.log(err)
-      results.map(function(supcription){
-        var html = "Se a ingresado una alerta.\n Nombre:"+req.body.nombre+"\n Tipo:"+req.body.tipo+"\n Fecha:"+req.body.fecha+"\n Hora:"+req.body.hora+"\n Atte. Equipo SAYD"
-        sendMailInterno (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
-      })
-    })
-
+    // db.collection('saypd_alerts').save(req.body, (err, result) => {
+    //     if (err) return console.log(err)
+    //     console.log('saved to database')
+    // })
+    //
+    // //obtener Subscripcion
+    // console.log("buscando suscripciones");
+    // db.collection('saypd_supcription').find({estado: { $in: [ "A", "I" ] }, alert : req.body.tipo}).toArray(function(err, results) {
+    //   if (err) return console.log(err)
+    //   results.map(function(supcription){
+    //     var html = "Se a ingresado una alerta.\n Nombre:"+req.body.nombre+"\n Tipo:"+req.body.tipo+"\n Fecha:"+req.body.fecha+"\n Hora:"+req.body.hora+"\n Atte. Equipo SAYD"
+    //     sendMailInterno (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
+    //   })
+    // })
+    // promiseSqrt(2).then(function(obj) {
+    //     console.log('END execution with value =', obj.value, 'and result =', obj.result);
+    // });
+    // console.log('COMPLETED ?');
     //Generacion de Acciones
     db.collection('saypd_action').find({state: { $in: [ "A", "I" ] }, alertType : req.body.tipo}).toArray(function(err, results) {
       if (err) return console.log(err)
       results.map(function(result){
         if(result.grammatic != ''){
-          //console.log(result.grammatic);
+          console.log(result.grammatic);
           var lineas = result.grammatic.split("\n");
           lineas.map(function(linea){
-            if(linea != '')
-              //LLamado de tipos de llamadas
-              if(linea.startsWith('funcion:')){
-                if(linea.includes('(')){
-                  //funcion parametrizada
-                  //console.log("entro a funcion con parametros");
-                  var length = 'funcion:'.length;
-                  var funcion = linea.substring(length, (linea.length));
-                  //agregamos parametro de alerta
-                  var funcionSplit = funcion.split("(");
-                  var cabecera = funcionSplit[0];
-                  var parametros = funcionSplit[1];
-                  funcion = cabecera +'("' + req.body.idAlerta +'",'+parametros;
-                  console.log(funcion);
-                  eval(funcion);
-                }else{
-                  var length = 'funcion:'.length;
-                  var call = linea.substring(length, (linea.length-1));
-                  console.log(call);
-                  db.collection('saypd_execution').find({state: { $in: [ "A", "I" ] }, funcion: call }).toArray(function(err, results) {
-                    if (err) return console.log(err)
-                    results.map(function(result){
-                      //console.log(result.funcion);
-                      var funcion = result.funcion + '("'+ req.body.idAlerta + '",';
-                      var params = '';
-                      //console.log(result.parameters);
-                      result.parameters.map(function(param){
-                        console.log(params);
-                        params = params == '' ?  '"'+param.value+'"' : params + ', "'+ param.value+'"';
-                      });
-                      funcion = funcion + params + ');';
-                      console.log(funcion);
-                      eval(funcion);
-                    })
-                  })
+            if(linea != ''){
+              //LLamado de tipos de condicion variable
+              if(linea.startsWith('condicion:')){
+                  var separa = linea.trim().split('?');
+                  console.log(separa);
+                  //Primer campo es de condicion
+                  var firtsCamp = separa[0];
+                  console.log(firtsCamp);
+                  var length = 'condicion:'.length;
+                  //quito la palabra keywork condicion
+                  var condicion = firtsCamp.substring(length, (firtsCamp.length-1));
+                  console.log(condicion);
+                  //separamos entre la ejecucion y la condicion
+                  var separaCondicion = condicion.trim().split('==');
+                  console.log("separaCondicion:",separaCondicion);
+                  var ejecucionCondicion = separaCondicion[0].trim();
+                  console.log("ejecucionCondicion:",ejecucionCondicion);
+                  var comparaConResultado = separaCondicion[1].trim();
+                  console.log("comparaConResultado:",comparaConResultado);
+
+                  //ejecuto la llamada de la ejecucionCondicion
+                  callService(req.body, ejecucionCondicion,
+                    function(data) {
+                      var json = { process : ejecucionCondicion.trim(), state : data.salida, message: data.descripcion};
+                      db.collection('saypd_control').save(json);
+                      var result = data.salida;
+                      var ejecuciones = separa[1];
+                      var separaEjecuciones = ejecuciones.split(':');
+                      console.log("result",result);
+                      console.log("comparaConResultado",comparaConResultado);
+                      if(result == comparaConResultado){
+                        console.log("entro a la condicion")
+                        var separaTrue = separaEjecuciones[0].split(',')
+                        console.log("separaTrue:",separaTrue);
+                        separaTrue.map(function(ejecu){
+                            callService(req.body, ejecu.trim(),
+                              function(data) {
+                                var json = { process : ejecu.trim(), state : data.salida, message: data.descripcion};
+                                db.collection('saypd_control').save(json);
+                            });
+                        });
+                      }
+                    });
                 }
+                console.log("hola Mundo");
+                // if(linea.includes('(')){
+                //   //funcion parametrizada
+                //   //console.log("entro a funcion con parametros");
+                //   var length = 'funcion:'.length;
+                //   var funcion = linea.substring(length, (linea.length));
+                //   //agregamos parametro de alerta
+                //   var funcionSplit = funcion.split("(");
+                //   var cabecera = funcionSplit[0];
+                //   var parametros = funcionSplit[1];
+                //   funcion = cabecera +'("' + req.body.idAlerta +'",'+parametros;
+                //   console.log(funcion);
+                //   eval(funcion);
+                // }else{
+                //   var length = 'funcion:'.length;
+                //   var call = linea.substring(length, (linea.length-1));
+                //   console.log(call);
+                //   db.collection('saypd_execution').find({state: { $in: [ "A", "I" ] }, funcion: call }).toArray(function(err, results) {
+                //     if (err) return console.log(err)
+                //     results.map(function(result){
+                //       //console.log(result.funcion);
+                //       var funcion = result.funcion + '("'+ req.body.idAlerta + '",';
+                //       var params = '';
+                //       //console.log(result.parameters);
+                //       result.parameters.map(function(param){
+                //         console.log(params);
+                //         params = params == '' ?  '"'+param.value+'"' : params + ', "'+ param.value+'"';
+                //       });
+                //       funcion = funcion + params + ');';
+                //       console.log(funcion);
+                //       eval(funcion);
+                //     })
+                //   })
+                // }
               }
           })
         }
@@ -1047,7 +1277,6 @@ apiRoutes.post('/recibirAlertas',
     res.status(201).json("OK");
   }
 );
-
 
 server.use('/api', apiRoutes);
 

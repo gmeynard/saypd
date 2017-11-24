@@ -1,6 +1,6 @@
 <template>
   <v-layout row justify-center>
-    <v-dialog v-model="dialog" persistent width="50%">
+    <v-dialog v-model="dialog" persistent width="80%">
       <v-btn v-tooltip:right="{ html: 'Agregar Funcion' }"
         absolute dark fab bottom left class="green"  slot="activator">
         <v-icon>add</v-icon>
@@ -31,11 +31,8 @@
                   @blur="$v.name.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10>
-                  <v-text-field name="parameters" v-model="parameters" label="Parametros"  placeholder="'param1','param2','param3',...."></v-text-field>
-                </v-flex>
-                <v-flex xs10>
                   <v-text-field name="grammatic" v-model="grammatic" label="Programacion"
-                  :error-messages="grammaticErrors" @input="$v.grammatic.$touch()" textarea
+                  :error-messages="grammaticErrors" @input="$v.grammatic.$touch()" textarea rows="18"
                   @blur="$v.grammatic.$touch()" required></v-text-field>
                 </v-flex>
               </v-layout>
@@ -86,7 +83,6 @@
         }
         axios.post('/api/setFunction',{
            name:this.name,
-           parameters:this.parameters,
            grammatic: this.grammatic,
            state:'A'
         }).then(({ data }) => {
@@ -105,7 +101,6 @@
       clear () {
         this.name = '';
         this.grammatic = '';
-        this.parameters = '';
         this.alert = false;
         this.alertError = false;
         this.isDisabled = false;

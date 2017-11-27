@@ -11,7 +11,7 @@ const appData = require('./data.json');
 const nodemailer = require('nodemailer');
 const MongoClient = require('mongodb').MongoClient
 // Create default port
-const PORT = 3001;
+const PORT = 3005;
 // Create a new server
 const server = express();
 // Configure server

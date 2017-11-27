@@ -23,7 +23,7 @@ function getUser(p_email) {
 };
 
 // Create default port
-const PORT = 3000;
+const PORT = 3001;
 
 // Create a new server
 const server = express();
@@ -1131,7 +1131,7 @@ function callService(json, nameService, callback){
       // the post options
       var optionspost = {
           host : 'localhost',
-          port : 3001,
+          port : 3005,
           path : '/api/'+nameService,
           method : 'POST',
           headers : postheaders
@@ -1235,7 +1235,6 @@ apiRoutes.post('/recibirAlertas',
                       }
                     });
                 }
-                console.log("hola Mundo");
                 // if(linea.includes('(')){
                 //   //funcion parametrizada
                 //   //console.log("entro a funcion con parametros");

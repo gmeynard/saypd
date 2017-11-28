@@ -35,8 +35,9 @@
                   @blur="$v.lastname.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10 >
-                  <v-text-field name="email" v-model="email" label="Email"
-                  disabled></v-text-field>
+                  <v-text-field name="emailnew" v-model="emailnew" label="Email"
+                  :error-messages="emailErrors" @input="$v.emailnew.$touch()"
+                  @blur="$v.emailnew.$touch()" required></v-text-field>
                 </v-flex>
                 <v-flex xs10>
                   <v-text-field name="cel" v-model="cel" prefix="+56 9" class="input-group--focused" label="Celular"
@@ -90,6 +91,7 @@
         name: '',
         lastname: '',
         email: '',
+        emailnew: '',
         cel: '',
         password: '',
         repassword: '',
@@ -108,6 +110,7 @@
            name:this.name,
            lastname:this.lastname,
            email:this.email,
+           emailnew:this.emailnew,
            cel:this.cel,
            password: this.password
         }).then(({ data }) => {
@@ -137,6 +140,7 @@
         this.name = this.usuario.name;
         this.lastname = this.usuario.lastname;
         this.email = this.usuario.email;
+        this.emailnew = this.usuario.email;
         this.cel = this.usuario.cel;
         this.password = '';
         this.repassword = '';

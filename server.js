@@ -268,7 +268,7 @@ apiRoutes.post('/updateUser',
            return res.status(201).json({estado:"NOK", descripcion:"Existen multiples usuarios"});
 
            if(req.body.password != ''){
-             db.collection('usuarios').updateMany({email:req.body.email},{$set : {'name': req.body.name, 'lastname':req.body.lastname, 'cel':req.body.cel, 'password':req.body.password}},
+             db.collection('usuarios').updateMany({email:req.body.email},{$set : {'name': req.body.name, 'lastname':req.body.lastname, 'cel':req.body.cel, 'password':req.body.password, 'email':req.body.emailnew}},
              function (err, result) {
                if (err)
                  return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
@@ -1165,24 +1165,21 @@ apiRoutes.post('/recibirAlertas',
   (req, res) => {
     console.log("entro a recibir alerta");
     console.log(req.body);
-    // db.collection('saypd_alerts').save(req.body, (err, result) => {
-    //     if (err) return console.log(err)
-    //     console.log('saved to database')
-    // })
-    //
-    // //obtener Subscripcion
-    // console.log("buscando suscripciones");
-    // db.collection('saypd_supcription').find({estado: { $in: [ "A", "I" ] }, alert : req.body.tipo}).toArray(function(err, results) {
-    //   if (err) return console.log(err)
-    //   results.map(function(supcription){
-    //     var html = "Se a ingresado una alerta.\n Nombre:"+req.body.nombre+"\n Tipo:"+req.body.tipo+"\n Fecha:"+req.body.fecha+"\n Hora:"+req.body.hora+"\n Atte. Equipo SAYD"
-    //     sendMailInterno (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
-    //   })
-    // })
-    // promiseSqrt(2).then(function(obj) {
-    //     console.log('END execution with value =', obj.value, 'and result =', obj.result);
-    // });
-    // console.log('COMPLETED ?');
+    db.collection('saypd_alerts').save(req.body, (err, result) => {
+        if (err) return console.log(err)
+        console.log('saved to database')
+    })
+
+    //obtener Subscripcion
+    console.log("buscando suscripciones");
+    db.collection('saypd_supcription').find({estado: { $in: [ "A", "I" ] }, alert : req.body.tipo}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      results.map(function(supcription){
+        var html = "Se a ingresado una alerta.\n Nombre:"+req.body.nombre+"\n Tipo:"+req.body.tipo+"\n Fecha:"+req.body.fecha+"\n Hora:"+req.body.hora+"\n Atte. Equipo SAYD"
+        sendMailInterno (supcription.email,"Alerta Ingresada con ID"+req.body.idAlerta,html);
+      })
+    })
+
     //Generacion de Acciones
     db.collection('saypd_action').find({state: { $in: [ "A", "I" ] }, alertType : req.body.tipo}).toArray(function(err, results) {
       if (err) return console.log(err)

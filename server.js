@@ -928,7 +928,140 @@ apiRoutes.get('/listAction',
   }
 );
 
+//CRUD Scheduler
+//insert
+apiRoutes.post('/setScheduler',
+(req, res) => {
+    console.log("Ingresando a servicio setScheduler");
+    var inicio = '//inicio:'+req.body.name;
+    var logica = req.body.grammatic;
+    var fin = '//fin:'+req.body.name;
+    var newdata = '\n'+ inicio +'\n'+ logica +'\n'+ fin;
+    fs.appendFile('ejecuciones.js', newdata, function (err) {
+       if (err) throw err;
+      console.log('Agrego Nueva Funcion');
+    });
+    db.collection('saypd_function').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>0)
+           return res.status(201).json({estado:"NOK", descripcion:"Funcion ya existe."});
 
+         db.collection('saypd_function').save(req.body,
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al ingresar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+         })
+
+    })
+  }
+);
+
+//update
+apiRoutes.post('/updateScheduler',
+(req, res) => {
+    console.log("Ingresando a servicio updateScheduler");
+    console.log(req.body);
+    var nameFuncion = req.body.name;
+    encontro = false;
+    var inicio = '//inicio:'+req.body.name;
+    var cabecera = 'apiRoutes.post("/'+req.body.name+'",\n(req, res) => {';
+    var logica = req.body.grammatic;
+    var footer = '  }\n);'
+    var fin = '//fin:'+req.body.name;
+    var newdata = '\n'+ inicio +'\n'+ cabecera +'\n'+ logica +'\n'+ footer +'\n'+ fin;
+
+   var i;
+   data_array = fs.readFileSync('ejecuciones.js', 'utf-8').split('\n');
+   var data_idis = [];
+   for (i = 0; i < data_array.length; i++){
+       if (data_array[i].match(fin)){
+         data_idis.push(i);
+         encontro = false;
+       }
+       if (data_array[i].match(inicio) || encontro){
+         data_idis.push(i);
+         encontro = true;
+       }
+   }
+   for(i= 0; i< data_idis.length; i++){
+       delete data_array[data_idis[i]];
+   }
+   names = [];
+   for (var i in data_array) {
+       if (data_array[i].length !== 0) {
+           names.push(data_array[i]);
+       }
+     }
+     var index = names.length +1;
+      names.push('\n')
+   data_result = names.join('\n');
+   fs.writeFile('ejecuciones.js', data_result, function (err) {
+      if (err) throw err;
+      console.log('Elimino!');
+   });
+   fs.appendFile('ejecuciones.js', newdata, function (err) {
+      if (err) throw err;
+     console.log('Agrego!');
+   });
+    db.collection('saypd_function').find({name:req.body.name}).count(
+      function(err, results) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+        if (results>1)
+           return res.status(201).json({estado:"NOK", descripcion:"Existen multiples valores"});
+
+       db.collection('saypd_function').updateMany({name:req.body.name},{$set : {'grammatic': req.body.grammatic}},
+         function (err, result) {
+           if (err)
+             return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+           return res.status(201).json({estado:"OK", descripcion:"Registro guardado correctamente", object:req.body});
+       })
+    })
+  }
+);
+
+//updateState
+apiRoutes.post('/stateScheduler',
+  (req, res) => {
+    console.log("Ingresando a servicio stateScheduler");
+    console.log(req.body.email);
+    var stateNew = req.body.state == 'A' ? 'I' : 'A';
+    db.collection('saypd_scheduler').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+    })
+    return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+  }
+);
+
+//updateState
+apiRoutes.post('/removeScheduler',
+  (req, res) => {
+    console.log("Ingresando a servicio removeScheduler");
+    var stateNew = 'E'
+    db.collection('saypd_scheduler').updateMany({name:req.body.name},{$set : {'state': stateNew}},
+      function (err, result) {
+        if (err)
+          return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
+        return res.status(201).json({estado:"OK", descripcion:"Accion completada correctamente"});
+    })
+
+  }
+);
+
+//getList
+apiRoutes.get('/listScheduler',
+  (req, res) => {
+    db.collection('saypd_scheduler').find({state: { $in: [ "A", "I" ] }}).toArray(function(err, results) {
+      if (err) return console.log(err)
+      res.status(201).json({ types : results });
+    })
+  }
+);
 
 //Other Services
 
@@ -946,18 +1079,24 @@ apiRoutes.get('/alertas',
 apiRoutes.post('/getAccion',
   (req, res) => {
     console.log("entro a servicio getAccion");
-    console.log(req.body.idAlerta);
-    db.collection('saypd_work').find({idAlerta:req.body.idAlerta}).count(
+    console.log(req.body);
+    var key = req.body.key;
+    console.log(key);
+    var jsonVariable = {};
+    jsonVariable[key] = req.body.value;
+    jsonVariable['estado'] = 'A';
+    console.log(jsonVariable);
+    db.collection('saypd_work').find(jsonVariable).count(
       function(err, results) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
         // if (results>1)
         //   return res.send({estado:"NOK", descripcion:"Existen multiples acciones a un sensor en estado pendiente."});
-
-        db.collection('saypd_work').find({idAlerta:req.body.idAlerta}).toArray(
+        db.collection('saypd_work').find(jsonVariable).toArray(
           function(err, results) {
             if (err)
               return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
+            console.log(results);
             return res.send(results[0]);
         })
     })
@@ -967,7 +1106,7 @@ apiRoutes.post('/getAccion',
 //Agregar accion asociada a un sensor
 apiRoutes.post('/endAccion',
   (req, res) => {
-    db.collection('acciones').updateMany({idAlerta:req.body.idAlerta,estado:'A'},{$set : {'estado': 'C'}},
+    db.collection('saypd_work').updateMany({idAlerta:req.body.idAlerta,estado:'A'},{$set : {'estado': 'C'}},
       function (err, result) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});

@@ -1097,7 +1097,7 @@ apiRoutes.post('/getAccion',
             if (err)
               return res.status(201).json({estado:"NOK", descripcion:"Error al obtener el registro"});
             console.log(results);
-            return res.send(results[0]);
+            return res.send(results);
         })
     })
   }
@@ -1106,7 +1106,15 @@ apiRoutes.post('/getAccion',
 //Agregar accion asociada a un sensor
 apiRoutes.post('/endAccion',
   (req, res) => {
-    db.collection('saypd_work').updateMany({idAlerta:req.body.idAlerta,estado:'A'},{$set : {'estado': 'C'}},
+    console.log("entro a servicio getAccion");
+    console.log(req.body);
+    var key = req.body.key;
+    console.log(key);
+    var jsonVariable = {};
+    jsonVariable[key] = req.body.value;
+    jsonVariable['estado'] = 'A';
+    console.log(jsonVariable);
+    db.collection('saypd_work').updateMany(jsonVariable,{$set : {'estado': 'C'}},
       function (err, result) {
         if (err)
           return res.status(201).json({estado:"NOK", descripcion:"Error al actualizar el registro"});
